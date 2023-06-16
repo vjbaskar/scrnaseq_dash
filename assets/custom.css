@@ -1,0 +1,12 @@
+.loader-wrapper > div {
+    visibility: visible !important;
+}
+
+#umap > div {
+    visibility: visible !important;
+}
+
+#loading_adata1 > div {
+    visibility: visible !important;
+}
+

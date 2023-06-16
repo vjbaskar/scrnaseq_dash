@@ -1,0 +1,4 @@
+DataId,ExptName,RBGid,Condition,ProjectName,WetLab,Bioinfo,Organism,ExptType,Comment,File
+dat0001,Mouse Atlas,"RBG1,RBG2",WT,Mouse hematopoiesis atlas,"Niki, Kat","Vijay, Kat",Mouse,10x gex,-,mouse_atlas.h5ad
+dat0002,Dahlin et al,"RBG3,RBG4",WT,Mouse LK/LSK,"Dahlin, Niki",Fiona,Mouse,10x gex,-,dahlin.h5ad
+dat0003,Nesterowa et al,"RBG3,RBG4",WT,Mouse LK/LSK,"Dahlin, Niki",Fiona,Mouse,ss2 gex,-,nestorowa.h5ad

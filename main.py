@@ -20,16 +20,17 @@ SIDEBAR_STYLE = {
     "top": 0,
     "left": 0,
     "bottom": 0,
-    "width": "16rem",
+    "width": "20rem",
     "padding": "2rem 1rem",
-    "background-color": "#f8f9fa",
+    "background-color": "#9C0F0F",
 }
 
 CONTENT_STYLE = {
-    "margin-left": "18rem",
+    "margin-left": "16rem",
     "margin-right": "2rem",
     "padding": "2rem 1rem",
 }
+
 
 
 # Read data table
@@ -44,8 +45,12 @@ dt = dash_table.DataTable(
     style_as_list_view=True,  # No vertical lines
     style_cell={'padding': '5px'},
     style_header={
-        'backgroundColor': 'Orange',
-        'fontWeight': 'bold'
+        'backgroundColor': 'rgb(156, 15, 15)',
+        'color': 'white'
+    },
+    style_data={
+        'backgroundColor': 'rgb(50, 50, 50)',
+        'color': 'white'
     }
 )
 
@@ -62,10 +67,10 @@ def get_umap(adata):
 #adata = read_adata(adatafile)
 
 # Start Application
-app = dash.Dash(external_stylesheets=[dbc.themes.BOOTSTRAP])
+app = dash.Dash(external_stylesheets=[dbc.themes.CYBORG])
 # Define application window name/ title
 app.title = 'scrnaseq'
-load_figure_template('BOOTSTRAP')
+load_figure_template('CYBORG')
 
 
 
@@ -119,7 +124,9 @@ sidebar_layout = html.Div([
 style = SIDEBAR_STYLE
 )
 
-
+[
+                #dcc.Graph(id='umap', figure=blank_figure())
+            ]
 content_layout = html.Div([
     html.Div([
         html.H1(children='UMAP'),
@@ -140,9 +147,7 @@ content_layout = html.Div([
     # ),
     html.Div(
         [
-            html.Div([
-                dcc.Graph(id='umap', figure=blank_figure())
-            ], id = 'centre'),
+            html.Div(id = 'umap'),
             html.Div(
                 [
                     dcc.Loading(
@@ -161,28 +166,16 @@ content_layout = html.Div([
     style=CONTENT_STYLE
 )
 
-app.layout = html.Div([sidebar_layout, content_layout])
+app.layout = dbc.Container(html.Div([sidebar_layout, content_layout]))
 
-# Trigger when data table is selected
-@app.callback(
-    Output('umap_options', 'children'),
-    Input('project_dt', 'selected_rows'),
-    prevent_initial_call=True
-)
-def get_adata(selected_rows):
-    print(selected_rows)
-    selected_adata = df.iloc[selected_rows].File
-    expt = df.iloc[selected_rows].ExptName
-    global dataid
-    dataid = df.iloc[selected_rows].DataId
-    filename = df.iloc[selected_rows].File.values[0]
-    global adata
-    print(filename)
-    adata = sc.read_h5ad(filename)
-    print("adata read successfully")
-    print(adata.obs.columns)
-    obs_dropdown = dcc.Dropdown(adata.obs.columns, id='obs_names')
-    var_dropdown = dcc.Dropdown(adata.var_names, id='var_names')
+def anndata_sidebar(adata):
+    """
+    Returns the sidebar containing drop down menus in the left bar
+    :param adata: anndata obj
+    :return: html.Div()
+    """
+    obs_dropdown = dcc.Dropdown(adata.obs.columns, id='obs_names', value=adata.obs.columns[0])
+    var_dropdown = dcc.Dropdown(adata.var_names, id='var_names', value = adata.var.index[0])
     point_sizes = dcc.Dropdown(list(range(20)), id='point_size', value=3)
 
     send_div = [
@@ -196,12 +189,37 @@ def get_adata(selected_rows):
             point_sizes
 
     ]
-
     return send_div
+
+
+# Trigger when data table is selected
+@app.callback(
+    Output('umap_options', 'children'),
+    Input('project_dt', 'selected_rows'),
+    prevent_initial_call=True
+)
+def get_adata(selected_rows):
+    """
+    From table, send in selected_rows to get adata
+    :param selected_rows: Returns a row data from 'dt'
+    :return: html.Div (left drop down menus)
+    """
+    print(selected_rows)
+    selected_adata = df.iloc[selected_rows].File
+    expt = df.iloc[selected_rows].ExptName
+    global dataid
+    dataid = df.iloc[selected_rows].DataId
+    filename = df.iloc[selected_rows].File.values[0]
+    global adata
+    print(filename)
+    adata = sc.read_h5ad(filename)
+    print("adata read successfully")
+    print(adata.obs.columns)
+    return anndata_sidebar(adata)
 
 # Plots obs columns
 @app.callback(
-    Output('umap', 'figure', allow_duplicate=True),
+    Output('umap', 'children', allow_duplicate=True),
     Input('obs_names', 'value'),
     Input('point_size', 'value'),
     prevent_initial_call=True,
@@ -211,11 +229,13 @@ def plot_umap(value, ps):
     umap = pd.merge(umap, adata.obs, left_index=True, right_index=True)
     fig = px.scatter(data_frame=umap, x='UMAP1', y='UMAP2', width=1000, height=800, color = value)
     fig.update_traces(marker_size=ps)
-    return fig
+    fig.update_layout(legend={'itemsizing': 'constant'})
+    graph = dcc.Graph(figure=fig)
+    return graph
 
 # Plot gene expression
 @app.callback(
-    Output('umap', 'figure' ),
+    Output('umap', 'children' ),
     Input('var_names', 'value'),
     Input('point_size', 'value'),
     prevent_initial_call=True
@@ -232,8 +252,10 @@ def plot_umap_gene_exp(value, ps):
     umap = pd.merge(umap, t, left_index=True, right_index=True)
     fig = px.scatter(data_frame=umap, x='UMAP1', y='UMAP2', width=1000, height=800, color = value)
     fig.update_traces(marker_size=ps)
-    return fig
+    fig.update_layout(legend={'itemsizing': 'constant'})
+    graph = dcc.Graph(figure=fig)
+    return graph
 
 
 #if __name__ == '__main__':
-app.run_server(debug=True)
+app.run_server(debug=False)
