@@ -1,6 +1,6 @@
 DataId,ExptName,RBGid,Condition,ProjectName,WetLab,Bioinfo,Organism,ExptType,Modality,Comment,File
 dat0001,Mouse Atlas,"RBG1,RBG2",WT,Mouse hematopoiesis atlas,"Niki, Kat","Vijay,Kat",Mouse,10x CITE-seq,Multimodal,-,mouse_atlas_fused.h5ad
-dat0002,Human BM Atlas,,WT,Simon Hass BM,,Vijay ,Human,10x gex,Unimodal,Public data,BM_pooling_and_control.h5ad
-dat0003,Dahlin et al,"RBG3,RBG4",WT,Mouse LK/LSK,"Dahlin, Niki",Fiona,Mouse,10x gex,Unimodal,-,dahlin.h5ad
+dat0002,Human BM Atlas,,WT,Simon Hass BM,,Vijay ,Human,10x gex,Unimodal,Public data,../dash/BM_pooling_and_control.h5ad
+dat0003,Dahlin et al,"RBG3,RBG4",WT,Mouse LK/LSK,"Dahlin, Niki",Fiona,Mouse,10x gex,Unimodal,-,../dash/dahlin.h5ad
 dat0004,Nesterowa et al,"RBG3,RBG4",WT,Mouse LK/LSK,Nesterowa,Fiona,Mouse,ss2 gex,Unimodal,-,nestorowa.h5ad
 dat0005,Leuk Mouse Models,RBG36,Jak2 mut/wt,PMCA,"Tomo, Niki",Tomo,Mouse,10x gex,Unimodal,Projected onto dat0002,Jak2.h5ad

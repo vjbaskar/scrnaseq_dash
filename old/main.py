@@ -11,11 +11,9 @@ import dash_bootstrap_components as dbc
 from dash_bootstrap_templates import load_figure_template
 import plotly.express as px
 import plotly.graph_objects as go
-#import muon as mu
-TITLE = 'scRepo'
+
 
 # Styling
-dbc_css = "https://cdn.jsdelivr.net/gh/AnnMarieW/dash-bootstrap-templates/dbc.min.css"
 
 SIDEBAR_STYLE = {
     "position": "fixed",
@@ -44,23 +42,16 @@ dt = dash_table.DataTable(
     data=df.to_dict('records'),
     row_selectable='single',
     columns=[{"name": i, "id": i} for i in df.columns],
-    style_as_list_view=False,  # No vertical lines
-    filter_action='native',
-    style_cell={
-        #'overflow': 'hidden',
-        #'textOverflow': 'ellipsis',
-        #'maxWidth': 4
-    },
+    style_as_list_view=True,  # No vertical lines
+    style_cell={'padding': '5px'},
     style_header={
         'backgroundColor': 'rgb(156, 15, 15)',
         'color': 'white'
     },
     style_data={
-
-        'whiteSpace': 'normal',
-        'height': 'auto',
-    },
-page_size= 3
+        'backgroundColor': 'rgb(50, 50, 50)',
+        'color': 'white'
+    }
 )
 
 
@@ -76,12 +67,17 @@ def get_umap(adata):
 #adata = read_adata(adatafile)
 
 # Start Application
-app = dash.Dash(external_stylesheets=[dbc.themes.PULSE, dbc_css])
+app = dash.Dash(external_stylesheets=[dbc.themes.CYBORG])
 # Define application window name/ title
 app.title = 'scrnaseq'
-load_figure_template('LUX')
+load_figure_template('CYBORG')
 
 
+
+#umap_base = dcc.Graph(id = 'umap',
+#                      figure = px.scatter(data_frame=umap, x = 'UMAP1', y = 'UMAP2', width=1000, height=800)
+#                      )
+#dt = dash_table.DataTable(data=adata.obs.head(10).to_dict('records'), page_size=10)
 
 def blank_figure():
     fig = go.Figure(go.Scatter(x=[], y=[]))
@@ -93,6 +89,22 @@ def blank_figure():
 
 
 # Application Layout
+#  Drop down menu
+
+
+# sidebar_layout = html.Div(
+#     [
+#         html.H4('Metadata'),
+#         obs_dropdown,
+#         html.Br(),
+#         html.H4('Genes'),
+#         var_dropdown,
+#         html.Br(),
+#         html.H4('Point size'),
+#         point_sizes
+#     ],
+#     style=SIDEBAR_STYLE
+# )
 
 sidebar_layout = html.Div([
     html.Div(
@@ -101,7 +113,6 @@ sidebar_layout = html.Div([
     html.Div(
         [
             dcc.Loading(
-                parent_className='loading_wrapper',
                 id="loading_adata",
                 type="default",
                 children=html.Div(id="umap_options"),
@@ -113,16 +124,28 @@ sidebar_layout = html.Div([
 style = SIDEBAR_STYLE
 )
 
-
-
+[
+                #dcc.Graph(id='umap', figure=blank_figure())
+            ]
 content_layout = html.Div([
     html.Div([
-        html.H1(children=TITLE),
+        html.H1(children='UMAP'),
         html.Br(),
-        html.Div(dt , className = "dbc dbc-row-selectable")
+        html.Div(dt)
     ]),
     html.Br(),
-    html.Div( #--> UMAP
+    #html.Button('Run', id='expt_id', n_clicks=0),
+    # html.Div(
+    #     [
+    #         html.P(id = 'adata'),
+    #         dcc.Loading(
+    #             id="loading_adata",
+    #             type="default",
+    #             children=html.Div(id="adata")
+    #         )
+    #     ]
+    # ),
+    html.Div(
         [
             html.Div(id = 'umap'),
             html.Div(
@@ -131,11 +154,9 @@ content_layout = html.Div([
                         id="loading_adata1",
                         type="default",
                         children=html.Div(id="centre"),
-                        fullscreen=False,
-                        className='loading_wrapper'
+                        fullscreen=False
                     )
-                ],
-
+                ]
             )
 
         ]
@@ -158,13 +179,13 @@ def anndata_sidebar(adata):
     point_sizes = dcc.Dropdown(list(range(20)), id='point_size', value=3)
 
     send_div = [
-            html.H4('Metadata', style={'color': 'white'}),
+            html.H4('Metadata'),
             obs_dropdown,
             html.Br(),
-            html.H4('Genes', style={'color': 'white'}),
+            html.H4('Genes'),
             var_dropdown,
             html.Br(),
-            html.H4('Point size', style={'color': 'white'}),
+            html.H4('Point size'),
             point_sizes
 
     ]
@@ -189,68 +210,12 @@ def get_adata(selected_rows):
     global dataid
     dataid = df.iloc[selected_rows].DataId
     filename = df.iloc[selected_rows].File.values[0]
-    modality = df.iloc[selected_rows].Modality.values[0]
     global adata
-    if modality == 'Unimodal':
-        print("Loading unimodal anndata")
-        adata = sc.read_h5ad(filename)
-    elif modality == 'Multimodal':
-        print("Loading multimodal mudata")
-        #adata = mu.read_h5mu(filename)
-        adata = sc.read_h5ad(filename) # For now just read multimodal as unimodal files
-        print("Successful")
+    print(filename)
+    adata = sc.read_h5ad(filename)
     print("adata read successfully")
-    #print(adata.obs.columns)
+    print(adata.obs.columns)
     return anndata_sidebar(adata)
-
-
-
-def get_dimred_pd(adata, dimred='umap'):
-    obsm_col = "X_" + dimred
-    colnames = [ dimred+i for i in ["1","2"] ]
-    matx = adata.obsm[obsm_col]
-    print(matx.shape)
-    matx = matx[:,[0,1]]
-    df  = pd.DataFrame(
-        matx,
-        columns = colnames,
-        index = adata.obs_names
-    )
-    return df
-
-
-def dimred_plot(colname, ps, dimred="umap", obs_or_var = 'obs' ):
-    umap = get_dimred_pd(adata, dimred = dimred)
-    colnames = list(umap.columns)
-    if obs_or_var == 'obs':
-        umap = pd.merge(umap, adata.obs, left_index=True, right_index=True)
-        fig = px.scatter(data_frame=umap,
-                         x=colnames[0],
-                         y=colnames[1],
-                         color = colname,
-                         width=1000, height=800)
-    if obs_or_var == 'var':
-        print(colname)
-        if isinstance(adata[:, colname].X, anndata._core.views.SparseCSRView):
-            x = adata[:, colname].X.toarray()
-        else:
-            x = adata[:, colname].X.toarray()
-        t = pd.DataFrame(x, index=adata.obs.index, columns=[colname])
-        umap = pd.merge(umap, t, left_index=True, right_index=True)
-        print(umap.head())
-        fig = px.scatter(data_frame=umap,
-                         x=colnames[0],
-                         y=colnames[1],
-                         color=colname,
-                         width=1000, height=800,
-                         color_continuous_scale='brwnyl')
-    fig.update_traces(marker_size=ps)
-    fig.update_layout(legend={'itemsizing': 'constant'})
-    graph = dcc.Graph(figure=fig)
-    return graph
-
-
-
 
 # Plots obs columns
 @app.callback(
@@ -259,32 +224,22 @@ def dimred_plot(colname, ps, dimred="umap", obs_or_var = 'obs' ):
     Input('point_size', 'value'),
     prevent_initial_call=True,
 )
-
-def plot_obs(obs_col, ps):
-    g = dimred_plot(obs_col, ps, dimred="umap", obs_or_var='obs')
-    return g
-
 def plot_umap(value, ps):
     umap = get_umap(adata)
     umap = pd.merge(umap, adata.obs, left_index=True, right_index=True)
-    fig = px.scatter(data_frame=umap, x='UMAP1', y='UMAP2', width=1000, height=800, color=value)
+    fig = px.scatter(data_frame=umap, x='UMAP1', y='UMAP2', width=1000, height=800, color = value)
     fig.update_traces(marker_size=ps)
     fig.update_layout(legend={'itemsizing': 'constant'})
     graph = dcc.Graph(figure=fig)
     return graph
 
-
+# Plot gene expression
 @app.callback(
-    Output('umap', 'children', allow_duplicate=True),
+    Output('umap', 'children' ),
     Input('var_names', 'value'),
     Input('point_size', 'value'),
     prevent_initial_call=True
 )
-def plot_var(varname, ps):
-    g = dimred_plot(varname, ps, dimred="umap", obs_or_var='var')
-    return g
-
-
 def plot_umap_gene_exp(value, ps):
     umap = get_umap(adata)
     if isinstance(adata[:,value].X, anndata._core.views.SparseCSRView):
@@ -293,20 +248,14 @@ def plot_umap_gene_exp(value, ps):
         x = adata[:, value].X.toarray()
 
     t = pd.DataFrame(x, index=adata.obs.index, columns=[value])
+
     umap = pd.merge(umap, t, left_index=True, right_index=True)
-    fig = px.scatter(data_frame=umap, x='UMAP1', y='UMAP2',
-                     width=1000, height=800,
-                     color = value,
-                     color_continuous_scale='brwnyl')
+    fig = px.scatter(data_frame=umap, x='UMAP1', y='UMAP2', width=1000, height=800, color = value)
     fig.update_traces(marker_size=ps)
     fig.update_layout(legend={'itemsizing': 'constant'})
-    #fig = sliders(fig)
-    graph = [dcc.Graph(figure=fig)]
+    graph = dcc.Graph(figure=fig)
     return graph
 
 
-
-
-
 #if __name__ == '__main__':
-app.run_server(debug=True, port = 8000)
+app.run_server(debug=False)
