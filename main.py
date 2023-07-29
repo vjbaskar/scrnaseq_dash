@@ -15,56 +15,34 @@ import plotly.graph_objects as go
 TITLE = 'scRepo'
 
 # Styling
-dbc_css = "https://cdn.jsdelivr.net/gh/AnnMarieW/dash-bootstrap-templates/dbc.min.css"
+#dbc_css = "https://cdn.jsdelivr.net/gh/AnnMarieW/dash-bootstrap-templates/dbc.min.css"
 
-SIDEBAR_STYLE = {
-    "position": "fixed",
-    "top": 0,
-    "left": 0,
-    "bottom": 0,
-    "width": "20rem",
-    "padding": "2rem 1rem",
-    "background-color": "#9C0F0F",
-}
+def get_data_table(df, page_size = 5):
+    df.index = list(df.DataId)
+    dt = dash_table.DataTable(
+        id='project_dt',
+        data=df.to_dict('records'),
+        row_selectable='single',
+        columns=[{"name": i, "id": i} for i in df.columns],
+        style_as_list_view=False,  # No vertical lines
+        filter_action='native',
+        style_cell={
+            #'overflow': 'hidden',
+            #'textOverflow': 'ellipsis',
+            #'maxWidth': 4
+        },
+        style_header={
+            'backgroundColor': 'rgb(156, 15, 15)',
+            'color': 'white'
+        },
+        style_data={
 
-CONTENT_STYLE = {
-    "margin-left": "16rem",
-    "margin-right": "2rem",
-    "padding": "2rem 1rem",
-}
-
-
-
-# Read data table
-df = pd.read_csv('data.csv')
-df.index = list(df.DataId)
-
-dt = dash_table.DataTable(
-    id='project_dt',
-    data=df.to_dict('records'),
-    row_selectable='single',
-    columns=[{"name": i, "id": i} for i in df.columns],
-    style_as_list_view=False,  # No vertical lines
-    filter_action='native',
-    style_cell={
-        #'overflow': 'hidden',
-        #'textOverflow': 'ellipsis',
-        #'maxWidth': 4
-    },
-    style_header={
-        'backgroundColor': 'rgb(156, 15, 15)',
-        'color': 'white'
-    },
-    style_data={
-
-        'whiteSpace': 'normal',
-        'height': 'auto',
-    },
-page_size= 3
-)
-
-
-
+            'whiteSpace': 'normal',
+            'height': 'auto',
+        },
+    page_size= page_size
+    )
+    return dt
 #adatafile = 'ref_landscape.h5ad'
 def read_adata(adatafile):
     adata = sc.read_h5ad(adatafile)
@@ -72,16 +50,6 @@ def read_adata(adatafile):
 
 def get_umap(adata):
     return pd.DataFrame(adata.obsm['X_umap'], columns=['UMAP1', 'UMAP2'], index = adata.obs_names)
-
-#adata = read_adata(adatafile)
-
-# Start Application
-app = dash.Dash(external_stylesheets=[dbc.themes.PULSE, dbc_css])
-# Define application window name/ title
-app.title = 'scrnaseq'
-load_figure_template('LUX')
-
-
 
 def blank_figure():
     fig = go.Figure(go.Scatter(x=[], y=[]))
@@ -92,8 +60,33 @@ def blank_figure():
     return fig
 
 
-# Application Layout
+SIDEBAR_STYLE = {
+    "position": "fixed",
+    "top": 0,
+    "left": 0,
+    "bottom": 0,
+    "width": "20rem",
+    "padding": "2rem 1rem",
+    "background-color": "#9C0F0F",
+}
+CONTENT_STYLE = {
+    "margin-left": "16rem",
+    "margin-right": "2rem",
+    "padding": "2rem 1rem",
+}
+# Start Application
+#app = dash.Dash(external_stylesheets=[dbc.themes.PULSE, dbc_css])
+app = dash.Dash(external_stylesheets=[dbc.themes.PULSE])
 
+# Define application window name/ title
+app.title = 'scrnaseq'
+load_figure_template('LUX')
+
+# Read data table
+csvfile='data.csv'
+df = pd.read_csv(csvfile)
+dt = get_data_table(df)
+# Application Layout
 sidebar_layout = html.Div([
     html.Div(
         id = 'umap_options',
@@ -112,9 +105,6 @@ sidebar_layout = html.Div([
 ],
 style = SIDEBAR_STYLE
 )
-
-
-
 content_layout = html.Div([
     html.Div([
         html.H1(children=TITLE),
