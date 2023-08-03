@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import sys
+import os
 import dash
 #import dash_core_components as dcc
 #import dash_html_components as html
@@ -34,7 +35,7 @@ SIDEBAR_STYLE = {
     "background-color": "#9C0F0F",
 }
 CONTENT_STYLE = {
-    "margin-left": "16rem",
+    "margin-left": "2rem",
     "margin-right": "2rem",
     "padding": "2rem 1rem",
 }
@@ -114,7 +115,7 @@ def blank_figure():
     return fig
 
 
-def populate_sidebar(adata):
+def populate_sidebar(adata, filename):
     """
     Returns the sidebar containing drop down menus in the left bar
     :param adata: anndata obj
@@ -135,6 +136,15 @@ def populate_sidebar(adata):
     dims_dropdown = dcc.Dropdown(dim_reds, id='dim_reds', value=dim_reds_default)
     point_sizes = dcc.Dropdown(list(range(20)), id='point_size', value=3)
 
+    # Download link
+    dl = "rsync -avzP user@login-cpu.hpc.cam.ac.uk:" + os.path.abspath(filename) + " ./"
+
+    download_link = dcc.ConfirmDialogProvider(
+        children=html.Button('Download'),
+        id='wget',
+        message="Download data\n " + dl
+    )
+
     send_div = [
         html.H4('Reduction maps', style={'color': 'white'}),
         dims_dropdown,
@@ -146,8 +156,12 @@ def populate_sidebar(adata):
         var_dropdown,
         html.Br(),
         html.H4('Point size', style={'color': 'white'}),
-        point_sizes
-
+        point_sizes,
+        html.Br(),
+        html.H4('Download File', style={'color': 'white'}),
+        download_link,
+        #html.Button("Download File2", id="btn_file"),
+        #dcc.Download(id="download-image")
     ]
     return send_div
 
@@ -305,6 +319,7 @@ def get_adata(selected_rows):
     expt = df.iloc[selected_rows].ExptName
     global dataid # A potential bug here. The dash servers may be sharing instances in which case adata will be overwritten by other instances. Rare but possible.
     global adata
+
     dataid = df.iloc[selected_rows].DataId
     filename = df.iloc[selected_rows].File.values[0]
     modality = df.iloc[selected_rows].Modality.values[0]
@@ -327,7 +342,7 @@ def get_adata(selected_rows):
     print("adata read successfully")
 
     #print(adata.obs.columns)
-    return populate_sidebar(adata)
+    return populate_sidebar(adata, filename)
 
 
 # Plot gene expression values
@@ -355,6 +370,24 @@ def plot_var(varname, ps, dimred):
 def plot_obs(obs_col, ps, dimred):
     g = dimred_plot(obs_col, ps, dimred, obs_or_var='obs')
     return g
+
+"""
+@app.callback(
+    Output("download-image", "data"),
+    Input("btn_file", "n_clicks"),
+    Input('project_dt', 'selected_rows'),
+    prevent_initial_call=True
+)
+def get_download(n_clicks, selected_rows):
+    print(selected_rows)
+    selected_adata = df.iloc[selected_rows].File
+    filename = df.iloc[selected_rows].File.values[0]
+    return dcc.send_file(
+        filename
+    )
+
+
+"""
 
 if __name__ == '__main__':
     if len(sys.argv) == 1:
