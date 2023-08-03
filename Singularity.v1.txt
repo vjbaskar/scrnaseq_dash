@@ -2,7 +2,7 @@ BootStrap: docker
 From: ubuntu:22.04
 
 %labels
-MAINTAINER Vijaya Baskar
+	MAINTAINTER Vijay
 
 %files
 	main.py /usr/bin/screpo	
