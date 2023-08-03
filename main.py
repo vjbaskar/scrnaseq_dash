@@ -401,4 +401,5 @@ if __name__ == '__main__':
         print("Usage: screpo database.csv port")
         exit(0)
     port=sys.argv[2]
-    app.run_server(debug=True, port = port)
+    #app.run_server(debug=True, port = port) # For internal testing on local server
+    app.run_server(debug=True, port = port, host = '0.0.0.0') # For external deployment
