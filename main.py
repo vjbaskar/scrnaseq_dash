@@ -72,11 +72,17 @@ navbar = dbc.NavbarSimple(
 
 
 def get_data_table(df, page_size = 5):
+
+    """
+    Reads in a pandas dataframd and outputs a dash_table.Datatable obj
+    """
+
     df.index = list(df.DataId)
     dt = dash_table.DataTable(
         id='project_dt',
         data=df.to_dict('records'),
-        columns=[{"name": i, "id": i} for i in df.columns],
+        #columns=[{"name": i, "id": i, 'disable_sort': True } if i == "File"  else {"name": i, "id": i } for i in df.columns ],
+        columns=[ {"name": i, "id": i, "hideable": True} for i in df.columns],
         style_cell={
             #'overflow': 'hidden',
             #'textOverflow': 'ellipsis',
@@ -95,7 +101,8 @@ def get_data_table(df, page_size = 5):
         style_as_list_view=False,  # No vertical lines
         filter_action='native',
         row_selectable='single',
-        page_size= page_size
+        page_size= page_size,
+        hidden_columns = ['File']
     )
     return dt
 #adatafile = 'ref_landscape.h5ad'
