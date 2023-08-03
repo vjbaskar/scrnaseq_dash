@@ -16,6 +16,7 @@ TITLE = 'scRepo'
 
 # Styling
 #dbc_css = "https://cdn.jsdelivr.net/gh/AnnMarieW/dash-bootstrap-templates/dbc.min.css"
+external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 SIDEBAR_STYLE = {
     "position": "fixed",
     "top": 0,
@@ -31,6 +32,35 @@ CONTENT_STYLE = {
     "padding": "2rem 1rem",
 }
 
+nav = dbc.Nav(
+    [
+        dbc.NavLink("scRepo", active=True, href="#"),
+        dbc.NavLink("Usage", disabled=True, href="#"),
+        dbc.NavLink("Contact", disabled=True,  href="#")
+    ],
+    pills=True
+)
+
+
+navbar = dbc.NavbarSimple(
+    children=[
+        dbc.NavItem(dbc.NavLink("Page 1", href="#")),
+        dbc.DropdownMenu(
+            children=[
+                dbc.DropdownMenuItem("More pages", header=True),
+                dbc.DropdownMenuItem("Page 2", href="#"),
+                dbc.DropdownMenuItem("Page 3", href="#"),
+            ],
+            nav=True,
+            in_navbar=True,
+            label="More",
+        ),
+    ],
+    brand="NavbarSimple",
+    brand_href="#",
+    color="primary",
+    dark=True,
+)
 
 
 def get_data_table(df, page_size = 5):
@@ -38,14 +68,12 @@ def get_data_table(df, page_size = 5):
     dt = dash_table.DataTable(
         id='project_dt',
         data=df.to_dict('records'),
-        row_selectable='single',
         columns=[{"name": i, "id": i} for i in df.columns],
-        style_as_list_view=False,  # No vertical lines
-        filter_action='native',
         style_cell={
             #'overflow': 'hidden',
             #'textOverflow': 'ellipsis',
-            #'maxWidth': 4
+            #'maxWidth': 4,
+            'font-family': 'sans-serif'
         },
         style_header={
             'backgroundColor': 'rgb(156, 15, 15)',
@@ -56,7 +84,10 @@ def get_data_table(df, page_size = 5):
             'whiteSpace': 'normal',
             'height': 'auto',
         },
-    page_size= page_size
+        style_as_list_view=False,  # No vertical lines
+        filter_action='native',
+        row_selectable='single',
+        page_size= page_size
     )
     return dt
 #adatafile = 'ref_landscape.h5ad'
@@ -157,14 +188,10 @@ def dimred_plot(colname, ps, dimred="umap", obs_or_var = 'obs' ):
     graph = dcc.Graph(figure=fig)
     return graph
 
-
-
-
-
 # Start Application
 #app = dash.Dash(external_stylesheets=[dbc.themes.PULSE, dbc_css])
 app = dash.Dash(
-    external_stylesheets=[dbc.themes.PULSE],
+    external_stylesheets=[dbc.themes.ZEPHYR],
     suppress_callback_exceptions=True
 )
 app.title = 'scrnaseq'
@@ -180,6 +207,16 @@ dt = get_data_table(df)
 # Application Layout
 # Side bar layout details and vars
 sidebar_layout = html.Div([
+    html.H1("scRepo", style = {'color': 'white'}),
+    html.Hr(
+        style={
+            "borderWidth": "0.2vh",
+            "width": "100%",
+            "borderColor": "white",
+            "opacity": "unset",
+        }
+    ),
+
     html.Div(
         id = 'umap_options',
     ),
@@ -200,9 +237,9 @@ style = SIDEBAR_STYLE
 
 content_layout = html.Div([
     html.Div([
-        html.H1(children=TITLE),
+        #html.H1(children=TITLE),
         html.Br(),
-        html.Div(dt , className = "dbc dbc-row-selectable")
+        html.Div(dt , className = "dbc dbc-row-selectable", style={'justify': 'left'})
     ]),
     html.Br(),
     html.Div( #--> UMAP
@@ -228,7 +265,12 @@ content_layout = html.Div([
     style=CONTENT_STYLE
 )
 
-app.layout = dbc.Container(html.Div([sidebar_layout, content_layout]))
+import dash_bootstrap_components as dbc
+app.layout = dbc.Container(
+   [
+    dbc.Row([sidebar_layout, content_layout])
+   ]
+)
 
 #temp = dict(adata = None)
 
