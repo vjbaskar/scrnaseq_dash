@@ -1,0 +1,13 @@
+BootStrap: docker
+From: ubuntu:22.04
+
+%files
+	main.py /usr/bin/screpo	
+
+%post
+	apt-get update
+	apt-get install -y wget vim python3-pip
+	#pip install seaborn plotly scanpy[leiden] scikit-learn scikit-misc tensorflow pandas keras dash dash_bootstrap_components dash_bootstrap_templates
+	pip install seaborn plotly scanpy[leiden] scikit-misc pandas dash dash_bootstrap_components dash_bootstrap_templates
+	chmod 755 /usr/bin/screpo
+	

@@ -1,4 +1,6 @@
-## 1st Example Application: Basic
+#!/usr/bin/env python3
+
+import sys
 import dash
 #import dash_core_components as dcc
 #import dash_html_components as html
@@ -13,6 +15,11 @@ import plotly.express as px
 import plotly.graph_objects as go
 #import muon as mu
 TITLE = 'scRepo'
+
+if len(sys.argv) == 1:
+    print("Usage: screpo database.csv port")
+    exit(0)
+
 
 # Styling
 #dbc_css = "https://cdn.jsdelivr.net/gh/AnnMarieW/dash-bootstrap-templates/dbc.min.css"
@@ -194,14 +201,16 @@ app = dash.Dash(
     external_stylesheets=[dbc.themes.ZEPHYR],
     suppress_callback_exceptions=True
 )
-app.title = 'scrnaseq'
+app.title = 'scRepo'
 load_figure_template('LUX')
 
 
 # Read data table
 csvfile='data.csv'
+csvfile = sys.argv[1]
+print("Reading from ", csvfile)
 df = pd.read_csv(csvfile)
-dt = get_data_table(df)
+dt = get_data_table(df, page_size = 10)
 
 
 # Application Layout
@@ -348,4 +357,8 @@ def plot_obs(obs_col, ps, dimred):
     return g
 
 if __name__ == '__main__':
-    app.run_server(debug=True, port = 8000)
+    if len(sys.argv) == 1:
+        print("Usage: screpo database.csv port")
+        exit(0)
+    port=sys.argv[2]
+    app.run_server(debug=True, port = port)
