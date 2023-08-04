@@ -20,7 +20,7 @@ With least investment of time you can customise the deployment to your needs.
 
 or if you do not have the privileges to generate a sif file, then use requirements.txt and pip to generate a virtual enviroment.
 
-`pip -r requirements.txt`
+`pip -r install requirements.txt`
 
 # Deployment
 
