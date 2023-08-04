@@ -414,5 +414,5 @@ if __name__ == '__main__':
 
     if runmode == 'local':
         app.run_server(debug=True, port = port) # For internal testing on local server
-    if rumode == 'remote':
+    if runmode == 'remote':
         app.run_server(debug=True, port = port, host = '0.0.0.0') # For external deployment
