@@ -200,7 +200,8 @@ def dimred_plot(colname, ps, dimred="umap", obs_or_var = 'obs' ):
                          color = colname,
                          width=1000, height=800)
     if obs_or_var == 'var':
-        print(colname)
+        if colname == None:
+            return None
         if isinstance(adata[:, colname].X, anndata._core.views.SparseCSRView):
             x = adata[:, colname].X.toarray()
         else:
@@ -230,12 +231,12 @@ load_figure_template('LUX')
 
 
 # Read data table
-csvfile='data.csv'
-csvfile = sys.argv[1]
-print("Reading from ", csvfile)
-df = pd.read_csv(csvfile)
-dt = get_data_table(df, page_size = 10)
-
+if len(sys.argv) == 4:
+    csvfile = 'data.csv'
+    csvfile = sys.argv[2]
+    print("Reading from ", csvfile)
+    df = pd.read_csv(csvfile)
+    dt = get_data_table(df, page_size=10)
 
 # Application Layout
 # Side bar layout details and vars
@@ -401,11 +402,16 @@ def get_download(n_clicks, selected_rows):
 """
 
 if __name__ == '__main__':
-    if len(sys.argv) == 1:
-        print("Usage: screpo database.csv port")
+    if len(sys.argv) < 4:
+        print("Usage: screpo mode database.csv port")
+        print("mode: local or remote")
+        print("local: run in your local machine")
+        print("remote: run in remote machine")
         exit(0)
-    port=sys.argv[2]
-    runmode = sys.argv[3]
+    port=sys.argv[3]
+    runmode = sys.argv[1]
+
+
     if runmode == 'local':
         app.run_server(debug=True, port = port) # For internal testing on local server
     if rumode == 'remote':
