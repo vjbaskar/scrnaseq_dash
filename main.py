@@ -139,7 +139,7 @@ def populate_sidebar(adata, filename):
         dim_reds_default = dim_reds[0]
 
     obs_dropdown = dcc.Dropdown(cols, id='obs_names', value=cols[len(cols)-1])
-    var_dropdown = dcc.Dropdown(vars, id='var_names', value = vars[0])
+    var_dropdown = dcc.Dropdown(vars, id='var_names')
     dims_dropdown = dcc.Dropdown(dim_reds, id='dim_reds', value=dim_reds_default)
     point_sizes = dcc.Dropdown(list(range(20)), id='point_size', value=3)
 
@@ -309,7 +309,8 @@ app.layout = dbc.Container(
 @app.callback(
     Output('umap_options', 'children'),
     Input('project_dt', 'selected_rows'),
-    prevent_initial_call=True
+    prevent_initial_call=True,
+    suppress_callback_exceptions=True
 )
 
 # From a unique row selected, read adata and also populate the sidebar
@@ -401,5 +402,5 @@ if __name__ == '__main__':
         print("Usage: screpo database.csv port")
         exit(0)
     port=sys.argv[2]
-    #app.run_server(debug=True, port = port) # For internal testing on local server
-    app.run_server(debug=True, port = port, host = '0.0.0.0') # For external deployment
+    app.run_server(debug=True, port = port) # For internal testing on local server
+    #app.run_server(debug=True, port = port, host = '0.0.0.0') # For external deployment
