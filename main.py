@@ -17,8 +17,11 @@ import plotly.graph_objects as go
 #import muon as mu
 TITLE = 'scRepo'
 
-if len(sys.argv) == 1:
-    print("Usage: screpo database.csv port")
+if len(sys.argv) < 3:
+    print("Usage: screpo mode database.csv port")
+    print("mode: local or remote")
+    print("local: run in your local machine")
+    print("remote: run in remote machine")
     exit(0)
 
 
@@ -402,5 +405,8 @@ if __name__ == '__main__':
         print("Usage: screpo database.csv port")
         exit(0)
     port=sys.argv[2]
-    app.run_server(debug=True, port = port) # For internal testing on local server
-    #app.run_server(debug=True, port = port, host = '0.0.0.0') # For external deployment
+    runmode = sys.argv[3]
+    if runmode == 'local':
+        app.run_server(debug=True, port = port) # For internal testing on local server
+    if rumode == 'remote':
+        app.run_server(debug=True, port = port, host = '0.0.0.0') # For external deployment
