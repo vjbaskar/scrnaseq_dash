@@ -14,6 +14,7 @@ import dash_bootstrap_components as dbc
 from dash_bootstrap_templates import load_figure_template
 import plotly.express as px
 import plotly.graph_objects as go
+import numpy as np
 #import muon as mu
 TITLE = 'scRepo'
 
@@ -189,7 +190,7 @@ def get_dimred_pd(adata, dimred='umap'):
     )
     return df
 
-def dimred_plot(colname, ps, dimred="umap", obs_or_var = 'obs' ):
+def dimred_plot(colname, ps, dimred="umap", obs_or_var = 'obs', min_x = None, max_x = None ):
     umap = get_dimred_pd(adata, dimred = dimred)
     colnames = list(umap.columns)
     if obs_or_var == 'obs':
@@ -199,6 +200,9 @@ def dimred_plot(colname, ps, dimred="umap", obs_or_var = 'obs' ):
                          y=colnames[1],
                          color = colname,
                          width=1000, height=800)
+        fig.update_traces(marker_size=ps)
+        fig.update_layout(legend={'itemsizing': 'constant'})
+        graph = [dcc.Graph(figure=fig)]
     if obs_or_var == 'var':
         if colname == None:
             return None
@@ -214,10 +218,47 @@ def dimred_plot(colname, ps, dimred="umap", obs_or_var = 'obs' ):
                          y=colnames[1],
                          color=colname,
                          width=1000, height=800,
-                         color_continuous_scale='brwnyl')
-    fig.update_traces(marker_size=ps)
-    fig.update_layout(legend={'itemsizing': 'constant'})
-    graph = dcc.Graph(figure=fig)
+                         color_continuous_scale='RdPu')
+        fig.update_traces(marker_size=ps)
+        fig.update_layout(legend={'itemsizing': 'constant'})
+        if min_x == None:
+            min_x = np.quantile(x, 0.05)
+            max_x = np.quantile(x, 0.95)
+            print(f"{min_x}, {max_x}")
+            graph = [ dcc.Graph(figure=fig, id = 'exp-plot'),
+                      dcc.RangeSlider(
+                          id='range-slider',
+                          min=min_x, max=max_x, step=0.1,
+                          marks={0: '0', 2.5: '2.5'},
+                          value=[min_x, max_x ]
+                      )
+            ]
+        else:
+            x [ x > max_x] = max_x
+            x [ x < min_x] = min_x
+            t = pd.DataFrame(x, index=adata.obs.index, columns=[colname])
+            #umap = pd.merge(umap, t, left_index=True, right_index=True)
+            umap.loc[umap[colname] > max_x, colname] = max_x
+            umap.loc[umap[colname] < min_x, colname] = min_x
+
+            print(umap.head())
+            fig = px.scatter(data_frame=umap,
+                             x=colnames[0],
+                             y=colnames[1],
+                             color=colname,
+                             width=1000, height=800,
+                             color_continuous_scale='RdPu')
+            fig.update_traces(marker_size=ps)
+            fig.update_layout(legend={'itemsizing': 'constant'})
+            print(f"{min_x}, {max_x}")
+            mx = np.quantile(x, 1.0)
+            graph = [dcc.Graph(figure=fig, id='exp-plot'),
+                     dcc.RangeSlider(
+                         id='range-slider',
+                         min=min_x, max=max_x, step=0.1,
+                         value=[min_x+0.1, max_x - 0.1]
+                     )
+            ]
     return graph
 
 # Start Application
@@ -400,6 +441,18 @@ def get_download(n_clicks, selected_rows):
 
 
 """
+
+@app.callback(
+    Output("exp-plot", "figure"),
+    Input('var_names', 'value'),
+    Input('point_size', 'value'),
+    Input('dim_reds', 'value'),
+    Input("range-slider", "value"))
+def update_bar_chart(varname, ps, dimred, slider_range):
+    low, high = slider_range
+    g = dimred_plot(varname, ps, dimred, obs_or_var='var', min_x = low, max_x = high)
+    return g
+
 
 if __name__ == '__main__':
     if len(sys.argv) < 4:
